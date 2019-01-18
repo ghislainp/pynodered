@@ -38,7 +38,6 @@ A simple example to lowercase the payload of the messages:
 
     from pynodered import node_red
 
-
     @node_red(category="pyfuncs")
     def lower_case(node, msg):
 
