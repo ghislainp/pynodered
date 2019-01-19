@@ -87,6 +87,11 @@ By default pynodered exports the functions in the Node-RED package 'pynodered' a
         "description"  : "Nodes written in Python for signal processing",
     }
 
+Warning
+----------
+
+pynodered is not ready for production use yet. On a multi-user computer, be aware that pynodered server will respond to anyone request and will execute code under the account that launched the server. NODE-Red has a similar issue (https://nodered.org/docs/security)
+
 
 License
 ----------
