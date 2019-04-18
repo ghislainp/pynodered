@@ -40,7 +40,7 @@ def main():
 
     package_tpl = {
         "name" : "pynodered",
-        "version" : "0.01",
+        "version" : "0.0.1",
         "description"  : "Nodes written in Python",
         "dependencies": { "follow-redirects" : "1.5.10"},
         "keywords": [ "node-red" ],
@@ -52,18 +52,18 @@ def main():
     registered = 0
 
 
-    for path in args.filenames:
+    for path1 in args.filenames:
 
-        print("Path: ", path)
+        print("Path: ", path1)
 
         # import the module by file or by name
-        if path.endswith(".py"):
-            path = Path(path)
+        if path1.endswith(".py"):
+            path = Path(path1)
             if path.stem.startswith("_"):
                 continue
             # import a file
             module_name = "pynodered.imported_modules." + path.stem
-            spec = importlib.util.spec_from_file_location(module_name, path)
+            spec = importlib.util.spec_from_file_location(module_name, path1)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             sys.modules[module_name] = module
@@ -90,7 +90,7 @@ def main():
 
         for name, obj in inspect.getmembers(module, inspect.isclass):
             if hasattr(obj, "install") and hasattr(obj, "work") and hasattr(obj, "run") and hasattr(obj, "name"):
-                print(f"From {name} register {obj.name}")
+                print("From %s register %s" % ({name},{obj.name}))
                 if not args.noinstall:
                     obj.install(node_dir, args.port)
                     print("Install %s" % name)
@@ -109,7 +109,7 @@ def main():
 
     if not args.noinstall:
         for package_name in packages:
-            with open(node_directory(package_name) / "package.json", "w") as f:
+            with open(str(node_directory(package_name))+ "/package.json", "w") as f:
                 json.dump(packages[package_name], f)
 
     # print('ROUTES')
