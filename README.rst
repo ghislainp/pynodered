@@ -29,7 +29,7 @@ Requires python>=3.5
 
     $ pip install pynodered
     # Install node dependencies
-    $ npm install follow-redirects
+    $ npm install follow-redirects url querystring
 
 Examples
 ------------
