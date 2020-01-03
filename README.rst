@@ -28,6 +28,8 @@ Requires python>=3.5
 .. code-block:: console
 
     $ pip install pynodered
+    # Install node dependencies
+    $ npm install follow-redirects
 
 Examples
 ------------
