@@ -1,4 +1,3 @@
-
 import os
 import collections
 import json
@@ -56,7 +55,7 @@ class RNBaseNode(metaclass=FormMetaClass):
 
         for ext in ['js', 'html']:
             in_path = Path(__file__).parent /  "templates" / ("%s.%s.in" % (cls.rednode_template, ext))
-            out_path = node_dir / ("%s.%s" % (cls.name, ext))
+            out_path = node_dir + ("/%s.%s" % (cls.name, ext))
 
             cls._install_template(in_path, out_path, node_dir, port)
 

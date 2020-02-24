@@ -1,4 +1,3 @@
-
 import sys
 import argparse
 import glob
@@ -22,9 +21,9 @@ app = Flask(__name__)
 app.register_blueprint(api.as_blueprint())
 
 
-def node_directory(package_name):
+def node_directory(nodered_path, package_name):
 
-    return Path.home() / ".node-red" / "node_modules" / package_name  # assume this also work on MacOS and Windows...
+    return nodered_path + "/nodes/" + package_name # assume this also work on MacOS and Windows...
 
 
 def main():
@@ -33,6 +32,7 @@ def main():
     parser.add_argument('--noinstall', action="store_true", help="do not install javascript files to save startup time. It is only necessary to install the files once or whenever a python function change")
     parser.add_argument('--port', help="port to use by Flask to run the Python server handling the request from Node-RED", default=5051)
     parser.add_argument('filenames', help='list of python file names or module names', nargs='+')
+    parser.add_argument('--nodered_path', help="Node-RED folder", default=str(Path.home()) + "/.node-red")
     args = parser.parse_args(sys.argv[1:])
 
     # register files:
@@ -84,7 +84,7 @@ def main():
             if package_name not in packages:
                 packages[package_name] = copy.deepcopy(package_tpl)  # load default values
 
-        node_dir = node_directory(package_name)
+        node_dir = node_directory(args.nodered_path, package_name)
 
         # now look for the functions and classes
 
@@ -109,7 +109,7 @@ def main():
 
     if not args.noinstall:
         for package_name in packages:
-            with open(str(node_directory(package_name))+ "/package.json", "w") as f:
+            with open(str(node_directory(args.nodered_path, package_name))+ "/package.json", "w") as f:
                 json.dump(packages[package_name], f)
 
     # print('ROUTES')
