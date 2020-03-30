@@ -27,11 +27,11 @@
 <script type="text/javascript">
     RED.nodes.registerType('%(name)s',{
         category: '%(category)s',
-        color:"rgb(231, 231, 174)",
+        color:"%(color)s",
         inputs:1,
         outputs:1,
         defaults: %(defaults)s,
-        icon: "function.png",
+        icon: "%(icon)s.png",
         label: function() {
             return "%(title)s";
         },
