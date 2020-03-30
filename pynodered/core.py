@@ -50,7 +50,7 @@ class RNBaseNode(metaclass=FormMetaClass):
     def install(cls, node_dir, port):
 
         try:
-            os.mkdir(str(node_dir))
+            os.mkdir(node_dir)
         except OSError:
             pass
 
@@ -78,11 +78,13 @@ class RNBaseNode(metaclass=FormMetaClass):
     </div>""" % property.as_dict()
 
 
-        t = open(str(in_path)).read()
+        t = open(in_path).read()
 
         t = t % { 'port': port,
               'name': cls.name,
               'title': cls.title,
+              'icon': cls.icon,
+              'color': cls.color,
               'category': cls.category,
               'description': cls.description,
               'defaults' : json.dumps(defaults),
@@ -90,7 +92,7 @@ class RNBaseNode(metaclass=FormMetaClass):
 
         print("writing %s" % (out_path,))
 
-        open(str(out_path), 'w').write(t)
+        open(out_path, 'w').write(t)
 
     def run(self, msg, config):
 
@@ -154,7 +156,7 @@ to continue without error. Once all the message with the expected topics are arr
 
 
 def node_red(name=None, title=None, category="default", description=None, 
-             join=None, baseclass=RNBaseNode, properties=None):
+             join=None, baseclass=RNBaseNode, properties=None, icon=None, color=None):
     """decorator to make a python function available in node-red. The function must take two arguments, node and msg.
     msg is a dictionary with all the pairs of keys and value sent by node-red. Most interesting keys are 'payload', 'topic' and 'msgid_'. 
     The node argument is an instance of the underlying class created by this decorator. It can be useful when you have a defined a common subclass 
@@ -166,7 +168,10 @@ def node_red(name=None, title=None, category="default", description=None,
         attrs['title'] = title if title is not None else attrs['name']
         attrs['description'] = description if description is not None else func.__doc__
         attrs['category'] = getattr(baseclass, "category", category)  # take in the baseclass if possible
-        
+        attrs['icon'] = icon if icon is not None else 'function'
+        attrs['color'] ="rgb({},{},{})".format(color[0], color[1], color[2]) if color is not None else "rgb(231,231,174)"
+
+ 
         if join is not None:
             if isinstance(join, Join):
                 attrs['join'] = join
