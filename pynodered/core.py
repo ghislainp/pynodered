@@ -52,7 +52,7 @@ class RNBaseNode(metaclass=FormMetaClass):
     def install(cls, node_dir, port):
 
         try:
-            os.mkdir(node_dir)
+            os.mkdir(str(node_dir))
         except OSError:
             pass
 
@@ -105,7 +105,7 @@ class RNBaseNode(metaclass=FormMetaClass):
                 raise Exception("Unknown input type")
 
 
-        t = open(in_path).read()
+        t = open(str(in_path)).read()
 
         t = t % { 'port': port,
               'name': cls.name,
@@ -118,9 +118,9 @@ class RNBaseNode(metaclass=FormMetaClass):
               'form' : form 
               }
 
-        print("writing %s" % (out_path,))
+        print("writing %s" % (str(out_path),))
 
-        open(out_path, 'w').write(t)
+        open(str(out_path), 'w').write(t)
 
     def run(self, msg, config):
 
