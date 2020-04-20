@@ -8,8 +8,9 @@ from setuptools import setup, find_packages
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
+# commented to avoid a problem with tox testing. Need a proper fix.
+#with open('HISTORY.rst') as history_file:
+#    history = history_file.read()
 
 requirements = [ 'flask', 'json-rpc']
 
@@ -33,7 +34,7 @@ setup(
     description="make python function easily accessible from Node-RED ",
     install_requires=requirements,
     license="GNU General Public License v3",
-    long_description=readme + '\n\n' + history,
+    long_description=readme, #+ '\n\n' + history,
     include_package_data=True,
     keywords='pynodered',
     name='pynodered',

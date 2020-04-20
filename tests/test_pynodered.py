@@ -6,7 +6,7 @@
 import pytest
 
 
-from pynodered import pynodered
+import pynodered
 
 
 @pytest.fixture
