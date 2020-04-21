@@ -197,7 +197,13 @@ def node_red(name=None, title=None, category="default", description=None,
         attrs['description'] = description if description is not None else func.__doc__
         attrs['category'] = getattr(baseclass, "category", category)  # take in the baseclass if possible
         attrs['icon'] = icon if icon is not None else 'function'
-        attrs['color'] ="rgb({},{},{})".format(color[0], color[1], color[2]) if color is not None else "rgb(231,231,174)"
+        try:
+            if isinstance(color, str):
+                attrs['color'] = color
+            else:
+                attrs['color'] = "rgb({},{},{})".format(color[0], color[1], color[2]) if color is not None else "rgb(231,231,174)"
+        except (IndexError, TypeError):
+            attrs['color'] = color
  
         if join is not None:
             if isinstance(join, Join):
