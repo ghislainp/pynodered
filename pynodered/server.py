@@ -1,4 +1,3 @@
-
 import sys
 import argparse
 import glob
@@ -17,33 +16,33 @@ from jsonrpc.backend.flask import api
 
 from pynodered.core import silent_node_waiting
 
-
 app = Flask(__name__)
 app.register_blueprint(api.as_blueprint())
 
 
 def node_directory(package_name):
-
     return Path.home() / ".node-red" / "node_modules" / package_name  # assume this also work on MacOS and Windows...
 
 
 def main():
-
     parser = argparse.ArgumentParser(prog='pynodered')
-    parser.add_argument('--noinstall', action="store_true", help="do not install javascript files to save startup time. It is only necessary to install the files once or whenever a python function change")
-    parser.add_argument('--port', help="port to use by Flask to run the Python server handling the request from Node-RED", default=5051)
+    parser.add_argument('--noinstall', action="store_true",
+                        help="do not install javascript files to save startup time. It is only necessary to install the files once or whenever a python function change")
+    parser.add_argument('--port',
+                        help="port to use by Flask to run the Python server handling the request from Node-RED",
+                        default=5051)
     parser.add_argument('filenames', help='list of python file names or module names', nargs='+')
     args = parser.parse_args(sys.argv[1:])
 
     # register files:
-    packages =  dict() 
+    packages = dict()
 
     package_tpl = {
-        "name" : "pynodered",
-        "version" : "0.0.1",
-        "description"  : "Nodes written in Python",
-        "dependencies": { "follow-redirects" : "1.5.10"},
-        "keywords": [ "node-red" ],
+        "name": "pynodered",
+        "version": "0.01",
+        "description": "Nodes written in Python",
+        "dependencies": {"follow-redirects": "1.5.10"},
+        "keywords": ["node-red"],
         "node-red": {
             "nodes": {}
         }
@@ -51,19 +50,18 @@ def main():
 
     registered = 0
 
+    for path in args.filenames:
 
-    for path1 in args.filenames:
-
-        print("Path: ", path1)
+        print("Path: ", path)
 
         # import the module by file or by name
-        if path1.endswith(".py"):
-            path = Path(path1)
+        if path.endswith(".py"):
+            path = Path(path)
             if path.stem.startswith("_"):
                 continue
             # import a file
             module_name = "pynodered.imported_modules." + path.stem
-            spec = importlib.util.spec_from_file_location(module_name, path1)
+            spec = importlib.util.spec_from_file_location(module_name, path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             sys.modules[module_name] = module
@@ -74,7 +72,8 @@ def main():
         # prepare the package json file
         if hasattr(module, "package"):
             if not isinstance(module.package, dict) or 'name' not in module.package:
-                raise Exception("the 'package' attribute in the module must be a dict defining at least the 'name' of the module in Node-RED")
+                raise Exception(
+                    "the 'package' attribute in the module must be a dict defining at least the 'name' of the module in Node-RED")
             package_name = module.package['name']
             if package_name not in packages:
                 packages[package_name] = copy.deepcopy(package_tpl)  # load default values
@@ -90,7 +89,7 @@ def main():
 
         for name, obj in inspect.getmembers(module, inspect.isclass):
             if hasattr(obj, "install") and hasattr(obj, "work") and hasattr(obj, "run") and hasattr(obj, "name"):
-                print("From %s register %s" % ({name},{obj.name}))
+                print(f"From {name} register {obj.name}")
                 if not args.noinstall:
                     obj.install(node_dir, args.port)
                     print("Install %s" % name)
@@ -109,7 +108,7 @@ def main():
 
     if not args.noinstall:
         for package_name in packages:
-            with open(str(node_directory(package_name))+ "/package.json", "w") as f:
+            with open(node_directory(package_name) / "package.json", "w") as f:
                 json.dump(packages[package_name], f)
 
     # print('ROUTES')
@@ -118,9 +117,8 @@ def main():
     #     # and rules that require parameters
     #     print(rule.methods,rule.endpoint)
 
-    app.run(host='127.0.0.1', port=args.port) #, debug=True)
+    app.run(host='127.0.0.1', port=args.port)  # , debug=True)
 
 
 if __name__ == '__main__':
-
     main()
