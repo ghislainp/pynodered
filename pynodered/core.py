@@ -9,9 +9,11 @@ class NodeProperty(object):
     """
 
     def __init__(self, title=None, type="str", value="", required=False, input_type="text", values=None):
+
         self.type = type
         self.value = value  # default value
         self.values = values  # values for a select to pick from
+
         self.title = title
         self.required = required
         self.input_type = input_type
@@ -20,6 +22,7 @@ class NodeProperty(object):
         self.title = self.title or self.name
         if len(args) == 0:
             args = {"name", "title", "type", "value", "title", "required", "input_type"}
+
         return {a: getattr(self, a) for a in args}
 
 
@@ -68,7 +71,7 @@ class RNBaseNode(metaclass=FormMetaClass):
 
         for property in cls.properties:
             defaults[property.name] = property.as_dict('value', 'required', 'type')
-
+            
             if property.input_type == "text":
                 form += """
                    <div class="form-row">
@@ -94,8 +97,8 @@ class RNBaseNode(metaclass=FormMetaClass):
                     <select id="node-input-%(name)s">
                     """ % property.as_dict()
                 for val in property.values:
-                    form += "<option value=\"{0}\" {1}>{0}</option>\n".format(val,
-                                                                              "selected=\"selected\"" if val == property.value else "")
+                    form += "<option  value=\"{0}\" {1}>{0}</option>\n".format(val, "selected=\"selected\"" if val == property.value else "")
+
                 form += """    </select>
                     </div> """
             else:
@@ -124,7 +127,7 @@ class RNBaseNode(metaclass=FormMetaClass):
                  'form': form
                  }
 
-        print("writing %s" % (out_path,))
+        print("writing %s" % (str(out_path),))
 
         open(out_path, 'w').write(t)
 
@@ -202,11 +205,15 @@ def node_red(name=None, title=None, category="default", description=None,
         attrs['description'] = description if description is not None else func.__doc__
         attrs['category'] = getattr(baseclass, "category", category)  # take in the baseclass if possible
         attrs['icon'] = icon if icon is not None else 'function'
-        attrs['outputs'] = outputs if outputs is not None else 1
-        attrs['output_labels'] = output_labels if type(output_labels) == list else []
-        attrs['color'] = "rgb({},{},{})".format(color[0], color[1],
-                                                color[2]) if color is not None else "rgb(231,231,174)"
 
+        try:
+            if isinstance(color, str):
+                attrs['color'] = color
+            else:
+                attrs['color'] = "rgb({},{},{})".format(color[0], color[1], color[2]) if color is not None else "rgb(231,231,174)"
+        except (IndexError, TypeError):
+            attrs['color'] = color
+ 
         if join is not None:
             if isinstance(join, Join):
                 attrs['join'] = join
