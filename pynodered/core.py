@@ -1,4 +1,3 @@
-
 import os
 import collections
 import json
@@ -12,17 +11,18 @@ class NodeProperty(object):
     def __init__(self, title=None, type="str", value="", required=False, input_type="text", values=None):
 
         self.type = type
-        self.value = value #default value
-        self.values = values # values for a select to pick from
+        self.value = value  # default value
+        self.values = values  # values for a select to pick from
+
         self.title = title
         self.required = required
         self.input_type = input_type
 
     def as_dict(self, *args):
-
         self.title = self.title or self.name
         if len(args) == 0:
-            args = {"name", "title", "type", "value", "title", "required", "input_type"} 
+            args = {"name", "title", "type", "value", "title", "required", "input_type"}
+
         return {a: getattr(self, a) for a in args}
 
 
@@ -41,7 +41,7 @@ class FormMetaClass(type):
 
 
 class RNBaseNode(metaclass=FormMetaClass):
-    """Base class for Red-Node nodes. All user-defined nodes should derived from it. 
+    """Base class for Red-Node nodes. All user-defined nodes should derived from it.
     The child classes must implement the work(self, msg=None) method.
     """
 
@@ -52,16 +52,15 @@ class RNBaseNode(metaclass=FormMetaClass):
     def install(cls, node_dir, port):
 
         try:
-            os.mkdir(str(node_dir))
+            os.mkdir(node_dir)
         except OSError:
             pass
 
         for ext in ['js', 'html']:
-            in_path = Path(__file__).parent /  "templates" / ("%s.%s.in" % (cls.rednode_template, ext))
+            in_path = Path(__file__).parent / "templates" / ("%s.%s.in" % (cls.rednode_template, ext))
             out_path = node_dir / ("%s.%s" % (cls.name, ext))
 
             cls._install_template(in_path, out_path, node_dir, port)
-
 
     # based on SFNR code (GPL)
     @classmethod
@@ -72,7 +71,7 @@ class RNBaseNode(metaclass=FormMetaClass):
 
         for property in cls.properties:
             defaults[property.name] = property.as_dict('value', 'required', 'type')
-    
+            
             if property.input_type == "text":
                 form += """
                    <div class="form-row">
@@ -99,28 +98,38 @@ class RNBaseNode(metaclass=FormMetaClass):
                     """ % property.as_dict()
                 for val in property.values:
                     form += "<option  value=\"{0}\" {1}>{0}</option>\n".format(val, "selected=\"selected\"" if val == property.value else "")
+
                 form += """    </select>
                     </div> """
             else:
                 raise Exception("Unknown input type")
 
+        label_text = ""
+        if len(cls.output_labels) > 1:
+            count = 0
+            for a_label in cls.output_labels:
+                label_text += "if (index === {}) return \"{}\";\n".format(count, a_label)
+                count += 1
+            label_text += "else return \"\";"
 
-        t = open(str(in_path)).read()
+        t = open(in_path).read()
 
-        t = t % { 'port': port,
-              'name': cls.name,
-              'title': cls.title,
-              'icon': cls.icon,
-              'color': cls.color,
-              'category': cls.category,
-              'description': cls.description,
-              'defaults' : json.dumps(defaults),
-              'form' : form 
-              }
+        t = t % {'port': port,
+                 'name': cls.name,
+                 'title': cls.title,
+                 'icon': cls.icon,
+                 'color': cls.color,
+                 'outputs': cls.outputs,
+                 'category': cls.category,
+                 'description': cls.description,
+                 'labels_text': label_text,
+                 'defaults': json.dumps(defaults),
+                 'form': form
+                 }
 
         print("writing %s" % (str(out_path),))
 
-        open(str(out_path), 'w').write(t)
+        open(out_path, 'w').write(t)
 
     def run(self, msg, config):
 
@@ -136,22 +145,21 @@ class NodeWaiting(Exception):
 
 def silent_node_waiting(f):
     def applicator(*args, **kwargs):
-      try:
-        return f(*args,**kwargs)
-      except NodeWaiting:
-        #print('silent_node_waiting')
-        return None  # silent_node_waiting
+        try:
+            return f(*args, **kwargs)
+        except NodeWaiting:
+            # print('silent_node_waiting')
+            return None  # silent_node_waiting
 
     return applicator
 
 
 class Join(object):
-    """implement a join properties for class deriving from RNBaseNode. This class handles waiting until a sufficient number of messages 
-with the excepted_topics arrive. While waiting the Join instance raise NodeWaiting exception which is understood by the server which then silently inform node-red 
+    """implement a join properties for class deriving from RNBaseNode. This class handles waiting until a sufficient number of messages
+with the excepted_topics arrive. While waiting the Join instance raise NodeWaiting exception which is understood by the server which then silently inform node-red
 to continue without error. Once all the message with the expected topics are arrived, the instance return the messages list in the order of expected_topics.
 
 """
-
 
     def __init__(self, expected_topics):
         self.mem = collections.defaultdict(dict)
@@ -183,11 +191,11 @@ to continue without error. Once all the message with the expected topics are arr
         del self._cache[msg['_msgid']]
 
 
-def node_red(name=None, title=None, category="default", description=None, 
-             join=None, baseclass=RNBaseNode, properties=None, icon=None, color=None):
+def node_red(name=None, title=None, category="default", description=None,
+             join=None, baseclass=RNBaseNode, properties=None, icon=None, color=None, outputs=1, output_labels=None):
     """decorator to make a python function available in node-red. The function must take two arguments, node and msg.
-    msg is a dictionary with all the pairs of keys and value sent by node-red. Most interesting keys are 'payload', 'topic' and 'msgid_'. 
-    The node argument is an instance of the underlying class created by this decorator. It can be useful when you have a defined a common subclass 
+    msg is a dictionary with all the pairs of keys and value sent by node-red. Most interesting keys are 'payload', 'topic' and 'msgid_'.
+    The node argument is an instance of the underlying class created by this decorator. It can be useful when you have a defined a common subclass
     of RNBaseNode that provided specific features for your application (usually database connection and similar). """
 
     def wrapper(func):
@@ -197,6 +205,7 @@ def node_red(name=None, title=None, category="default", description=None,
         attrs['description'] = description if description is not None else func.__doc__
         attrs['category'] = getattr(baseclass, "category", category)  # take in the baseclass if possible
         attrs['icon'] = icon if icon is not None else 'function'
+
         try:
             if isinstance(color, str):
                 attrs['color'] = color
@@ -220,7 +229,7 @@ def node_red(name=None, title=None, category="default", description=None,
                 attrs[k] = properties[k]
 
         attrs['work'] = func
-        cls = FormMetaClass(attrs['name'], (baseclass, ), attrs)
+        cls = FormMetaClass(attrs['name'], (baseclass,), attrs)
 
         return cls
 
@@ -231,4 +240,4 @@ def node_red(name=None, title=None, category="default", description=None,
 #     """madoc"""
 #     print(msg)
 
-#print(mynode)
+# print(mynode)

@@ -29,7 +29,10 @@
         category: '%(category)s',
         color:"%(color)s",
         inputs:1,
-        outputs:1,
+        outputs: %(outputs)s,
+        outputLabels : function(index) {
+            %(labels_text)s
+        },
         defaults: %(defaults)s,
         icon: "%(icon)s.png",
         label: function() {

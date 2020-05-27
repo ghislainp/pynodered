@@ -99,8 +99,15 @@ module.exports = function(RED) {
                     }
                     try { msg.payload = JSON.parse(msg.payload); }
                     catch(e) { node.warn(RED._("httpin.errors.json-error")); }
-
-                    node.send(msg.payload["result"]);
+                    try {
+                        const output = msg.payload["result"]["selected_output"];
+                        const msgs = [];
+                        delete msg.payload["result"]["selected_output"];
+                        msgs[output] = msg.payload["result"];
+                        node.send(msgs);
+                    } catch(e) {
+                        node.send(msg.payload["result"]);
+                    }
 
                     node.status({});
                 });
