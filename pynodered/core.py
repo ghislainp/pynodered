@@ -105,7 +105,7 @@ class RNBaseNode(metaclass=FormMetaClass):
                 raise Exception("Unknown input type")
 
         label_text = ""
-        if len(cls.output_labels) > 1:
+        if hasattr(cls, "output_labels") and len(cls.output_labels) > 1:
             count = 0
             for a_label in cls.output_labels:
                 label_text += "if (index === {}) return \"{}\";\n".format(count, a_label)
@@ -221,6 +221,12 @@ def node_red(name=None, title=None, category="default", description=None,
                 attrs['join'] = Join(join)
             else:
                 raise Exception("join must be a Join object or a sequence of topic (str)")
+
+        attrs['outputs'] = outputs
+        if output_labels is not None:
+            if outputs != len(output_labels):
+                raise Exception("output_labels must have length equal to outputs")
+            attrs['output_labels'] = output_labels
 
         if properties is not None:
             if not isinstance(properties, dict):
